@@ -1,0 +1,25 @@
+# Python
+*.py
+__pycache__/
+*.pyc
+
+# Scripts
+scripts/
+
+# Kaynak dosyalar
+evraklar_kaynak/
+
+# Text dosyaları
+evraklar_txt/
+
+# Geçici dosyalar
+temp_files/
+*.zip
+*_extracted/
+
+# Git
+.git/
+.gitignore
+
+# Docs
+EVRAK_VIEWER_README.md

@@ -1,16 +1,14 @@
 {
   "version": 2,
   "name": "udf-evrak-viewer",
-  "builds": [
-    {
-      "src": "evrak_viewer.html",
-      "use": "@vercel/static"
-    }
-  ],
   "routes": [
     {
       "src": "/",
       "dest": "/evrak_viewer.html"
+    },
+    {
+      "src": "/evraklar_pdf/(.*)",
+      "dest": "/evraklar_pdf/$1"
     },
     {
       "src": "/(.*)",
