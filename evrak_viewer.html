@@ -1,0 +1,629 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Evrak Görüntüleyici</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: #f5f7fa;
+        height: 100vh;
+        overflow: hidden;
+      }
+
+      .app-container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+      }
+
+      /* Header */
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 20px 30px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        z-index: 100;
+      }
+
+      .header-content {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        max-width: 100%;
+      }
+
+      .header h1 {
+        font-size: 1.8em;
+        font-weight: 600;
+      }
+
+      .header-stats {
+        display: flex;
+        gap: 30px;
+        align-items: center;
+      }
+
+      .stat-item {
+        text-align: center;
+      }
+
+      .stat-number {
+        font-size: 1.8em;
+        font-weight: bold;
+      }
+
+      .stat-label {
+        font-size: 0.85em;
+        opacity: 0.9;
+      }
+
+      /* Main Content */
+      .main-content {
+        display: flex;
+        flex: 1;
+        overflow: hidden;
+      }
+
+      /* Sidebar */
+      .sidebar {
+        width: 400px;
+        background: white;
+        border-right: 1px solid #e0e0e0;
+        display: flex;
+        flex-direction: column;
+        transition: all 0.3s;
+      }
+
+      .sidebar.collapsed {
+        width: 0;
+        overflow: hidden;
+      }
+
+      .search-box {
+        padding: 20px;
+        border-bottom: 1px solid #e0e0e0;
+      }
+
+      .search-input {
+        width: 100%;
+        padding: 12px 15px;
+        font-size: 1em;
+        border: 2px solid #e0e0e0;
+        border-radius: 8px;
+        outline: none;
+        transition: all 0.3s;
+      }
+
+      .search-input:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .evrak-list {
+        flex: 1;
+        overflow-y: auto;
+        padding: 10px;
+      }
+
+      .evrak-item {
+        background: white;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        padding: 15px;
+        margin-bottom: 10px;
+        cursor: pointer;
+        transition: all 0.3s;
+      }
+
+      .evrak-item:hover {
+        border-color: #667eea;
+        box-shadow: 0 2px 8px rgba(102, 126, 234, 0.2);
+        transform: translateX(5px);
+      }
+
+      .evrak-item.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        border-color: #667eea;
+      }
+
+      .evrak-item-header {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 8px;
+      }
+
+      .evrak-icon {
+        width: 40px;
+        height: 40px;
+        background: rgba(102, 126, 234, 0.1);
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 20px;
+      }
+
+      .evrak-item.active .evrak-icon {
+        background: rgba(255, 255, 255, 0.2);
+      }
+
+      .evrak-title {
+        font-weight: 600;
+        font-size: 0.95em;
+      }
+
+      .evrak-info {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.85em;
+        opacity: 0.8;
+        margin-top: 8px;
+      }
+
+      .no-results {
+        text-align: center;
+        padding: 40px 20px;
+        color: #999;
+      }
+
+      .no-results-icon {
+        font-size: 60px;
+        margin-bottom: 15px;
+      }
+
+      /* Viewer Panel */
+      .viewer-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        background: #f5f7fa;
+        position: relative;
+      }
+
+      .viewer-header {
+        background: white;
+        padding: 15px 25px;
+        border-bottom: 1px solid #e0e0e0;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .viewer-title {
+        font-size: 1.2em;
+        font-weight: 600;
+        color: #333;
+      }
+
+      .viewer-actions {
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 0.9em;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .btn-primary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+      }
+
+      .btn-secondary {
+        background: #f5f5f5;
+        color: #333;
+      }
+
+      .btn-secondary:hover {
+        background: #e0e0e0;
+      }
+
+      .toggle-sidebar-btn {
+        background: #f5f5f5;
+        border: none;
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 1.2em;
+        transition: all 0.3s;
+      }
+
+      .toggle-sidebar-btn:hover {
+        background: #e0e0e0;
+      }
+
+      .viewer-content {
+        flex: 1;
+        padding: 20px;
+        overflow: hidden;
+      }
+
+      .pdf-viewer {
+        width: 100%;
+        height: 100%;
+        border: none;
+        border-radius: 10px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+        background: white;
+      }
+
+      .empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        color: #999;
+      }
+
+      .empty-state-icon {
+        font-size: 100px;
+        margin-bottom: 20px;
+      }
+
+      .empty-state h2 {
+        font-size: 1.8em;
+        margin-bottom: 10px;
+        color: #666;
+      }
+
+      .empty-state p {
+        font-size: 1.1em;
+      }
+
+      /* Scrollbar */
+      .evrak-list::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .evrak-list::-webkit-scrollbar-track {
+        background: #f1f1f1;
+      }
+
+      .evrak-list::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+      }
+
+      .evrak-list::-webkit-scrollbar-thumb:hover {
+        background: #555;
+      }
+
+      /* Responsive */
+      @media (max-width: 1024px) {
+        .sidebar {
+          width: 350px;
+        }
+      }
+
+      @media (max-width: 768px) {
+        .header h1 {
+          font-size: 1.3em;
+        }
+
+        .header-stats {
+          gap: 15px;
+        }
+
+        .stat-number {
+          font-size: 1.4em;
+        }
+
+        .stat-label {
+          font-size: 0.75em;
+        }
+
+        .sidebar {
+          position: absolute;
+          left: 0;
+          top: 0;
+          height: 100%;
+          width: 300px;
+          z-index: 50;
+          box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .sidebar.collapsed {
+          transform: translateX(-100%);
+        }
+
+        .viewer-header {
+          padding: 12px 15px;
+        }
+
+        .viewer-title {
+          font-size: 1em;
+        }
+
+        .btn {
+          padding: 8px 15px;
+          font-size: 0.85em;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app-container">
+      <!-- Header -->
+      <div class="header">
+        <div class="header-content">
+          <h1>📄 Evrak Görüntüleyici</h1>
+          <div class="header-stats">
+            <div class="stat-item">
+              <div class="stat-number" id="totalCount">0</div>
+              <div class="stat-label">Toplam</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-number" id="filteredCount">0</div>
+              <div class="stat-label">Gösterilen</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Sidebar -->
+        <div class="sidebar" id="sidebar">
+          <div class="search-box">
+            <input
+              type="text"
+              class="search-input"
+              id="searchInput"
+              placeholder="🔍 Evrak ara..."
+            />
+          </div>
+          <div class="evrak-list" id="evrakList"></div>
+        </div>
+
+        <!-- Viewer Panel -->
+        <div class="viewer-panel">
+          <div class="viewer-header">
+            <button
+              class="toggle-sidebar-btn"
+              id="toggleSidebar"
+              onclick="toggleSidebar()"
+            >
+              ☰
+            </button>
+            <div class="viewer-title" id="viewerTitle">Evrak Görüntüleyici</div>
+            <div
+              class="viewer-actions"
+              id="viewerActions"
+              style="display: none"
+            >
+              <a href="#" class="btn btn-secondary" id="downloadBtn" download>
+                ⬇️ İndir
+              </a>
+              <a
+                href="#"
+                class="btn btn-primary"
+                id="openNewTabBtn"
+                target="_blank"
+              >
+                🔗 Yeni Sekmede Aç
+              </a>
+            </div>
+          </div>
+          <div class="viewer-content">
+            <div class="empty-state" id="emptyState">
+              <div class="empty-state-icon">📄</div>
+              <h2>Evrak Seçin</h2>
+              <p>Soldan bir evrak seçerek görüntülemeye başlayın</p>
+            </div>
+            <iframe
+              class="pdf-viewer"
+              id="pdfViewer"
+              style="display: none"
+            ></iframe>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Evrak listesi
+      const evraklar = [
+        {
+          id: "evrak_12452252045",
+          dosya: "evraklar_pdf/evrak_12452252045.pdf",
+        },
+        {
+          id: "evrak_12452252046",
+          dosya: "evraklar_pdf/evrak_12452252046.pdf",
+        },
+        {
+          id: "evrak_12452252095",
+          dosya: "evraklar_pdf/evrak_12452252095.pdf",
+        },
+        {
+          id: "evrak_12454306934",
+          dosya: "evraklar_pdf/evrak_12454306934.pdf",
+        },
+        {
+          id: "evrak_12459414584",
+          dosya: "evraklar_pdf/evrak_12459414584.pdf",
+        },
+        {
+          id: "evrak_12459414627",
+          dosya: "evraklar_pdf/evrak_12459414627.pdf",
+        },
+        {
+          id: "evrak_12459414714",
+          dosya: "evraklar_pdf/evrak_12459414714.pdf",
+        },
+        {
+          id: "evrak_12523109400",
+          dosya: "evraklar_pdf/evrak_12523109400.pdf",
+        },
+        {
+          id: "evrak_13053615305",
+          dosya: "evraklar_pdf/evrak_13053615305.pdf",
+        },
+        {
+          id: "evrak_13060144810",
+          dosya: "evraklar_pdf/evrak_13060144810.pdf",
+        },
+        {
+          id: "evrak_13061764239",
+          dosya: "evraklar_pdf/evrak_13061764239.pdf",
+        },
+        {
+          id: "evrak_13124704570",
+          dosya: "evraklar_pdf/evrak_13124704570.pdf",
+        },
+        {
+          id: "evrak_13378096002",
+          dosya: "evraklar_pdf/evrak_13378096002.pdf",
+        },
+        {
+          id: "evrak_13382263030",
+          dosya: "evraklar_pdf/evrak_13382263030.pdf",
+        },
+        {
+          id: "evrak_13385026541",
+          dosya: "evraklar_pdf/evrak_13385026541.pdf",
+        },
+        {
+          id: "evrak_13387699432",
+          dosya: "evraklar_pdf/evrak_13387699432.pdf",
+        },
+      ];
+
+      let filteredEvraklar = [...evraklar];
+      let selectedEvrak = null;
+
+      // Sayfa yüklendiğinde
+      document.addEventListener("DOMContentLoaded", () => {
+        renderEvrakList();
+        updateStats();
+
+        // Arama
+        document
+          .getElementById("searchInput")
+          .addEventListener("input", (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            filteredEvraklar = evraklar.filter((evrak) =>
+              evrak.id.toLowerCase().includes(searchTerm),
+            );
+            renderEvrakList();
+            updateStats();
+          });
+      });
+
+      function renderEvrakList() {
+        const list = document.getElementById("evrakList");
+
+        if (filteredEvraklar.length === 0) {
+          list.innerHTML = `
+                    <div class="no-results">
+                        <div class="no-results-icon">🔍</div>
+                        <p>Sonuç bulunamadı</p>
+                    </div>
+                `;
+          return;
+        }
+
+        list.innerHTML = filteredEvraklar
+          .map((evrak) => {
+            const evrakNo = evrak.id.replace("evrak_", "");
+            const tarih = formatTarih(evrakNo);
+            const isActive = selectedEvrak === evrak.id ? "active" : "";
+
+            return `
+                    <div class="evrak-item ${isActive}" onclick="selectEvrak('${evrak.id}', '${evrak.dosya}')">
+                        <div class="evrak-item-header">
+                            <div class="evrak-icon">📄</div>
+                            <div class="evrak-title">${evrak.id}</div>
+                        </div>
+                        <div class="evrak-info">
+                            <span>No: ${evrakNo}</span>
+                            <span>${tarih}</span>
+                        </div>
+                    </div>
+                `;
+          })
+          .join("");
+      }
+
+      function updateStats() {
+        document.getElementById("totalCount").textContent = evraklar.length;
+        document.getElementById("filteredCount").textContent =
+          filteredEvraklar.length;
+      }
+
+      function formatTarih(evrakNo) {
+        if (evrakNo.length >= 8) {
+          const yil = "20" + evrakNo.substring(0, 2);
+          const ay = evrakNo.substring(2, 4);
+          const gun = evrakNo.substring(4, 6);
+          return `${gun}/${ay}/${yil}`;
+        }
+        return "Bilinmiyor";
+      }
+
+      function selectEvrak(evrakId, pdfPath) {
+        selectedEvrak = evrakId;
+
+        // Liste güncelle
+        renderEvrakList();
+
+        // PDF göster
+        const emptyState = document.getElementById("emptyState");
+        const pdfViewer = document.getElementById("pdfViewer");
+        const viewerTitle = document.getElementById("viewerTitle");
+        const viewerActions = document.getElementById("viewerActions");
+        const downloadBtn = document.getElementById("downloadBtn");
+        const openNewTabBtn = document.getElementById("openNewTabBtn");
+
+        emptyState.style.display = "none";
+        pdfViewer.style.display = "block";
+        pdfViewer.src = pdfPath;
+
+        viewerTitle.textContent = evrakId;
+        viewerActions.style.display = "flex";
+        downloadBtn.href = pdfPath;
+        downloadBtn.download = evrakId + ".pdf";
+        openNewTabBtn.href = pdfPath;
+      }
+
+      function toggleSidebar() {
+        const sidebar = document.getElementById("sidebar");
+        sidebar.classList.toggle("collapsed");
+      }
+
+      // ESC tuşu ile sidebar'ı aç/kapat
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") {
+          toggleSidebar();
+        }
+      });
+    </script>
+  </body>
+</html>
