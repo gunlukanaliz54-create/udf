@@ -383,6 +383,25 @@
               <div class="stat-number" id="filteredCount">0</div>
               <div class="stat-label">Gösterilen</div>
             </div>
+            <button
+              onclick="logout()"
+              style="
+                background: rgba(255, 255, 255, 0.2);
+                color: white;
+                border: 2px solid rgba(255, 255, 255, 0.3);
+                padding: 8px 20px;
+                border-radius: 8px;
+                font-size: 0.9em;
+                font-weight: 600;
+                cursor: pointer;
+                margin-left: 20px;
+                transition: all 0.3s;
+              "
+              onmouseover="this.style.background = 'rgba(255,255,255,0.3)'"
+              onmouseout="this.style.background = 'rgba(255,255,255,0.2)'"
+            >
+              🚪 Çıkış
+            </button>
           </div>
         </div>
       </div>
@@ -448,6 +467,33 @@
     </div>
 
     <script>
+      // Şifre kontrolü
+      const CORRECT_PASSWORD = "yeliz123";
+      let isAuthenticated = sessionStorage.getItem("authenticated") === "true";
+
+      // Sayfa yüklendiğinde şifre kontrolü
+      if (!isAuthenticated) {
+        const password = prompt("🔒 Evrak sistemine erişim için şifre girin:");
+
+        if (password === CORRECT_PASSWORD) {
+          sessionStorage.setItem("authenticated", "true");
+          isAuthenticated = true;
+        } else {
+          alert("❌ Hatalı şifre! Erişim reddedildi.");
+          document.body.innerHTML = `
+            <div style="display: flex; align-items: center; justify-content: center; height: 100vh; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; font-family: 'Segoe UI', sans-serif; text-align: center;">
+              <div>
+                <h1 style="font-size: 3em; margin-bottom: 20px;">🔒</h1>
+                <h2>Erişim Reddedildi</h2>
+                <p style="margin-top: 10px; opacity: 0.9;">Hatalı şifre girdiniz.</p>
+                <button onclick="location.reload()" style="margin-top: 30px; padding: 15px 30px; background: white; color: #667eea; border: none; border-radius: 8px; font-size: 1em; font-weight: 600; cursor: pointer;">Tekrar Dene</button>
+              </div>
+            </div>
+          `;
+          throw new Error("Authentication failed");
+        }
+      }
+
       // Evrak listesi
       const evraklar = [
         {
@@ -616,6 +662,13 @@
       function toggleSidebar() {
         const sidebar = document.getElementById("sidebar");
         sidebar.classList.toggle("collapsed");
+      }
+
+      function logout() {
+        if (confirm("🔒 Çıkış yapmak istediğinize emin misiniz?")) {
+          sessionStorage.removeItem("authenticated");
+          location.reload();
+        }
       }
 
       // ESC tuşu ile sidebar'ı aç/kapat
