@@ -1,0 +1,20 @@
+{
+  "version": 2,
+  "name": "udf-evrak-viewer",
+  "builds": [
+    {
+      "src": "evrak_viewer.html",
+      "use": "@vercel/static"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/",
+      "dest": "/evrak_viewer.html"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/$1"
+    }
+  ]
+}

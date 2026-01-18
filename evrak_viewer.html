@@ -339,18 +339,29 @@
           font-size: 0.75em;
         }
 
+        .main-content {
+          position: relative;
+        }
+
         .sidebar {
-          position: absolute;
+          position: fixed;
           left: 0;
           top: 0;
           height: 100%;
-          width: 300px;
-          z-index: 50;
-          box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+          width: 85%;
+          max-width: 350px;
+          z-index: 100;
+          box-shadow: 2px 0 15px rgba(0, 0, 0, 0.3);
+          transform: translateX(0);
+          transition: transform 0.3s ease;
         }
 
         .sidebar.collapsed {
           transform: translateX(-100%);
+        }
+
+        .viewer-panel {
+          width: 100%;
         }
 
         .viewer-header {
@@ -358,12 +369,36 @@
         }
 
         .viewer-title {
-          font-size: 1em;
+          font-size: 0.95em;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          max-width: 150px;
+        }
+
+        .viewer-actions {
+          gap: 5px;
         }
 
         .btn {
-          padding: 8px 15px;
-          font-size: 0.85em;
+          padding: 8px 12px;
+          font-size: 0.8em;
+        }
+
+        /* Sidebar overlay */
+        .sidebar-overlay {
+          display: none;
+          position: fixed;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          background: rgba(0, 0, 0, 0.5);
+          z-index: 99;
+        }
+
+        .sidebar-overlay.active {
+          display: block;
         }
       }
     </style>
@@ -408,8 +443,15 @@
 
       <!-- Main Content -->
       <div class="main-content">
+        <!-- Sidebar Overlay (Mobile) -->
+        <div
+          class="sidebar-overlay"
+          id="sidebarOverlay"
+          onclick="toggleSidebar()"
+        ></div>
+
         <!-- Sidebar -->
-        <div class="sidebar" id="sidebar">
+        <div class="sidebar collapsed" id="sidebar">
           <div class="search-box">
             <input
               type="text"
@@ -657,11 +699,25 @@
         downloadBtn.href = pdfPath;
         downloadBtn.download = evrakId + ".pdf";
         openNewTabBtn.href = pdfPath;
+
+        // Mobilde evrak seçilince sidebar'ı kapat
+        if (window.innerWidth <= 768) {
+          const sidebar = document.getElementById("sidebar");
+          const overlay = document.getElementById("sidebarOverlay");
+          sidebar.classList.add("collapsed");
+          overlay.classList.remove("active");
+        }
       }
 
       function toggleSidebar() {
         const sidebar = document.getElementById("sidebar");
+        const overlay = document.getElementById("sidebarOverlay");
         sidebar.classList.toggle("collapsed");
+
+        // Mobilde overlay göster/gizle
+        if (window.innerWidth <= 768) {
+          overlay.classList.toggle("active");
+        }
       }
 
       function logout() {
